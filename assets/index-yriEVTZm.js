@@ -646,4 +646,4 @@ Please change the parent <Route path="${L}"> to <Route path="${L==="/"?"*":`${L}
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-`;function Vb(){return O.jsx(Tv,{children:O.jsxs(Zb,{children:[O.jsx(j1,{}),O.jsxs(Ig,{children:[O.jsx(lc,{path:"/",element:O.jsx(ab,{})}),O.jsx(lc,{path:"/test",element:O.jsx(jb,{})}),O.jsx(lc,{path:"/results",element:O.jsx(Qb,{})})]}),O.jsx(Y1,{})]})})}rg.createRoot(document.getElementById("root")).render(O.jsx(tn.StrictMode,{children:O.jsx(Vb,{})}));
+`;function Vb(){return O.jsx(Tv,{basename:"/TypeFlare/",children:O.jsxs(Zb,{children:[O.jsx(j1,{}),O.jsxs(Ig,{children:[O.jsx(lc,{path:"/",element:O.jsx(ab,{})}),O.jsx(lc,{path:"/test",element:O.jsx(jb,{})}),O.jsx(lc,{path:"/results",element:O.jsx(Qb,{})})]}),O.jsx(Y1,{})]})})}rg.createRoot(document.getElementById("root")).render(O.jsx(tn.StrictMode,{children:O.jsx(Vb,{})}));
