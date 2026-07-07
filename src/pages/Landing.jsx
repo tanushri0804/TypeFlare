@@ -1,367 +1,342 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 
-// Mint green color theme with enhancements
-const colors = {
-  primary: "#88c9a1",
-  secondary: "#4a7c59",
-  accent: "#f8f9fa",
-  light: "#ffffff",
-  highlight: "#d4e6d9",
-  text: "#2d3e40",
-  dark: "#1a2e35",
-};
+// ─── Animations ────────────────────────────────────────────────────────────────
 
-// Enhanced Animations
-const float = keyframes`
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(5deg); }
+const fadeUp = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 `;
 
-const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+const blink = keyframes`
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
 `;
 
-const gradientFlow = keyframes`
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+const softGlow = keyframes`
+  0%, 100% { text-shadow: 0 0 20px rgba(192, 132, 252, 0.3); }
+  50%       { text-shadow: 0 0 40px rgba(192, 132, 252, 0.6), 0 0 80px rgba(192, 132, 252, 0.2); }
 `;
 
-const scaleIn = keyframes`
-  from { transform: scale(0.9); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+const pulse = keyframes`
+  0%, 100% { box-shadow: 0 0 0 0 rgba(192, 132, 252, 0.3); }
+  50%       { box-shadow: 0 0 0 12px rgba(192, 132, 252, 0); }
 `;
 
-const Container = styled.div`
-  padding: 6rem 1rem;
-  text-align: center;
-  background: linear-gradient(135deg, ${colors.highlight} 0%, ${colors.light} 100%);
-  min-height: 100vh;
+// ─── Layout ────────────────────────────────────────────────────────────────────
+
+const Page = styled.div`
+  min-height: calc(100vh - 65px);
+  background: #0f0f0f;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 4rem 1.5rem 6rem;
   position: relative;
   overflow: hidden;
 `;
 
-const HeroSection = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+const Noise = styled.div`
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+  pointer-events: none;
+  opacity: 0.4;
+`;
+
+// ─── Hero ──────────────────────────────────────────────────────────────────────
+
+const Hero = styled.div`
   position: relative;
-  z-index: 2;
+  z-index: 1;
+  text-align: center;
+  max-width: 800px;
+  margin-bottom: 5rem;
 `;
 
-const Heading = styled.h1`
-  font-size: 4.5rem;
-  margin-bottom: 1.5rem;
-  color: ${colors.dark};
-  font-weight: 800;
-  line-height: 1.2;
-  animation: ${fadeIn} 1s ease-out forwards;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.1);
-
-  @media (max-width: 768px) {
-    font-size: 3rem;
-  }
-`;
-
-const Highlight = styled.span`
-  color: ${colors.secondary};
-  display: inline-block;
-  position: relative;
-  
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 5px;
-    left: 0;
-    width: 100%;
-    height: 15px;
-    background: rgba(138, 201, 161, 0.3);
-    z-index: -1;
-    border-radius: 20px;
-    animation: ${scaleIn} 1s ease-out 0.5s both;
-  }
-`;
-
-const Subtext = styled.p`
-  font-size: 1.5rem;
-  margin-bottom: 3rem;
-  color: ${colors.text};
-  max-width: 700px;
-  line-height: 1.6;
-  opacity: 0;
-  animation: ${fadeIn} 1s ease-out 0.3s forwards;
-  font-weight: 400;
-
-  @media (max-width: 768px) {
-    font-size: 1.2rem;
-  }
-`;
-
-const Button = styled(Link)`
-  padding: 1.3rem 3.5rem;
-  font-size: 1.2rem;
-  background: linear-gradient(135deg, ${colors.secondary} 0%, ${colors.primary} 100%);
-  color: ${colors.light};
-  border: none;
+const EyebrowTag = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(192, 132, 252, 0.1);
+  border: 1px solid rgba(192, 132, 252, 0.2);
   border-radius: 50px;
-  cursor: pointer;
-  text-decoration: none;
-  font-weight: 600;
-  box-shadow: 0 10px 25px rgba(74, 124, 89, 0.4);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  padding: 0.35rem 1rem;
+  font-size: 0.78rem;
+  font-family: 'Courier New', monospace;
+  color: #c084fc;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 2rem;
   opacity: 0;
-  animation: ${fadeIn} 1s ease-out 0.6s forwards;
-  position: relative;
-  overflow: hidden;
-  z-index: 1;
-  
+  animation: ${fadeUp} 0.5s ease-out 0.1s forwards;
+
   &::before {
     content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%);
-    z-index: -1;
-    transition: all 0.4s ease;
-    opacity: 0;
-  }
-
-  &:hover {
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 15px 30px rgba(74, 124, 89, 0.5);
-    
-    &::before {
-      opacity: 1;
-    }
-  }
-
-  &:active {
-    transform: translateY(0) scale(0.98);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #c084fc;
+    animation: ${blink} 1.5s ease-in-out infinite;
   }
 `;
 
-const FeaturesSection = styled.section`
-  max-width: 1200px;
-  margin: 5rem auto;
-  padding: 2rem;
-  position: relative;
-  z-index: 2;
-`;
-
-const SectionTitle = styled.h2`
-  font-size: 2.5rem;
-  margin-bottom: 3rem;
-  color: ${colors.dark};
-  position: relative;
-  display: inline-block;
-  
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 4px;
-    background: ${colors.secondary};
-    border-radius: 2px;
-  }
-`;
-
-const Features = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 3rem;
-  margin-top: 2rem;
-`;
-
-const FeatureCard = styled.div`
-  background: ${colors.light};
-  padding: 2.5rem;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  border: 1px solid ${colors.highlight};
+const Title = styled.h1`
+  font-size: clamp(2.8rem, 7.5vw, 5.5rem);
+  font-weight: 900;
+  line-height: 1.08;
+  margin: 0 0 1.5rem;
+  color: #e2e2e2;
+  letter-spacing: -2px;
   opacity: 0;
-  transform: translateY(30px);
-  animation: ${fadeIn} 0.8s ease-out forwards;
-  animation-delay: ${props => props.delay || '0.3s'};
-
-  &:hover {
-    transform: translateY(-15px) !important;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-    background: linear-gradient(135deg, ${colors.light} 0%, ${colors.highlight} 100%);
-  }
+  animation: ${fadeUp} 0.6s ease-out 0.25s forwards;
 `;
 
-const FeatureIcon = styled.div`
-  font-size: 3.5rem;
-  margin-bottom: 2rem;
-  color: ${colors.secondary};
+const Accent = styled.span`
+  color: #c084fc;
+  animation: ${softGlow} 4s ease-in-out infinite;
   display: inline-block;
-  animation: ${float} 6s ease-in-out infinite;
-  animation-delay: ${props => props.delay || '0s'};
 `;
 
-const FeatureTitle = styled.h3`
-  margin-bottom: 1.5rem;
-  color: ${colors.dark};
-  font-size: 1.5rem;
-  font-weight: 700;
-`;
-
-const FeatureDesc = styled.p`
-  color: ${colors.text};
-  font-size: 1.1rem;
-  line-height: 1.7;
-  opacity: 0.9;
-`;
-
-const FloatingShapes = styled.div`
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  overflow: hidden;
-`;
-
-const Shape = styled.div`
-  position: absolute;
-  border-radius: ${props => props.circle ? '50%' : '20px'};
-  background: rgba(138, 201, 161, 0.15);
-  filter: blur(${props => props.blur || '0px'});
-  animation: ${float} ${props => props.duration || '15s'} linear infinite;
-  animation-delay: ${props => props.delay || '0s'};
-`;
-
-const Testimonials = styled.div`
-  max-width: 1000px;
-  margin: 5rem auto;
-  padding: 3rem;
-  background: ${colors.light};
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  opacity: 0;
-  animation: ${fadeIn} 1s ease-out 1.2s forwards;
-`;
-
-const TestimonialText = styled.blockquote`
-  font-size: 1.4rem;
-  color: ${colors.text};
+const Sub = styled.p`
+  font-size: 1.05rem;
+  color: rgba(226, 226, 226, 0.4);
   line-height: 1.8;
-  font-style: italic;
-  margin-bottom: 2rem;
-  position: relative;
-  
-  &::before, &::after {
-    content: '"';
-    font-size: 3rem;
-    color: ${colors.primary};
-    opacity: 0.3;
-    position: absolute;
-  }
-  
-  &::before {
-    top: -20px;
-    left: -30px;
-  }
-  
-  &::after {
-    bottom: -40px;
-    right: -30px;
+  max-width: 480px;
+  margin: 0 auto 3rem;
+  opacity: 0;
+  animation: ${fadeUp} 0.6s ease-out 0.4s forwards;
+`;
+
+// ─── Terminal demo ────────────────────────────────────────────────────────────
+
+const Terminal = styled.div`
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  padding: 0.6rem 0.8rem 1.4rem;
+  max-width: 600px;
+  margin: 0 auto 3rem;
+  text-align: left;
+  opacity: 0;
+  animation: ${fadeUp} 0.6s ease-out 0.55s forwards;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+`;
+
+const TitleBar = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.4rem 0.8rem;
+`;
+
+const Dot = styled.span`
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: ${props => props.color};
+  opacity: 0.7;
+`;
+
+const TerminalText = styled.div`
+  font-family: 'Courier New', monospace;
+  font-size: 1rem;
+  color: rgba(226, 226, 226, 0.55);
+  line-height: 1.6;
+  padding: 0 0.4rem;
+
+  .typed { color: #e2e2e2; }
+  .purple { color: #c084fc; }
+  .dim { color: rgba(226, 226, 226, 0.25); }
+`;
+
+const Cursor = styled.span`
+  display: inline-block;
+  width: 2px;
+  height: 0.95em;
+  background: #c084fc;
+  vertical-align: text-bottom;
+  margin-left: 1px;
+  border-radius: 1px;
+  animation: ${blink} 0.9s step-end infinite;
+`;
+
+// ─── CTA ──────────────────────────────────────────────────────────────────────
+
+const CTARow = styled.div`
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: ${fadeUp} 0.6s ease-out 0.7s forwards;
+`;
+
+const PrimaryBtn = styled(Link)`
+  display: inline-block;
+  padding: 0.9rem 2.5rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #0f0f0f;
+  background: #c084fc;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+  font-family: 'Courier New', monospace;
+  animation: ${pulse} 2.5s ease-in-out 2s infinite;
+
+  &:hover {
+    background: #d8b4fe;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 28px rgba(192, 132, 252, 0.4);
   }
 `;
 
-const TestimonialAuthor = styled.p`
+const SecondaryBtn = styled(Link)`
+  display: inline-block;
+  padding: 0.9rem 2rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: ${colors.secondary};
-  font-size: 1.2rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(226, 226, 226, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  transition: all 0.25s ease;
+  font-family: 'Courier New', monospace;
+
+  &:hover {
+    color: #e2e2e2;
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-3px);
+  }
 `;
+
+// ─── Stats strip ──────────────────────────────────────────────────────────────
+
+const StatsStrip = styled.div`
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 3.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: ${fadeUp} 0.6s ease-out 0.9s forwards;
+`;
+
+const StatItem = styled.div`
+  text-align: center;
+`;
+
+const StatNum = styled.p`
+  font-size: 2rem;
+  font-weight: 900;
+  color: #c084fc;
+  margin: 0 0 0.2rem;
+  font-family: 'Courier New', monospace;
+  letter-spacing: -1px;
+`;
+
+const StatLabel = styled.p`
+  font-size: 0.72rem;
+  color: rgba(226, 226, 226, 0.25);
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  margin: 0;
+`;
+
+const Divider = styled.div`
+  width: 1px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.07);
+  align-self: center;
+`;
+
+// ─── Demo text & typing animation ────────────────────────────────────────────
+
+const DEMO  = "the quick brown fox jumps over the lazy dog";
+const SPEED = 95;
 
 function Landing() {
-  // Create floating shapes
-  const shapes = [
-    { id: 1, size: 120, left: 5, top: 10, circle: true, duration: '20s', delay: '0s', blur: '5px' },
-    { id: 2, size: 80, left: 80, top: 20, circle: false, duration: '25s', delay: '2s', blur: '3px' },
-    { id: 3, size: 150, left: 30, top: 60, circle: true, duration: '30s', delay: '4s', blur: '7px' },
-    { id: 4, size: 100, left: 70, top: 70, circle: false, duration: '22s', delay: '1s', blur: '2px' },
-  ];
+  const [typed, setTyped] = useState(0);
+
+  useEffect(() => {
+    if (typed >= DEMO.length) return;
+    const id = setTimeout(() => setTyped(t => t + 1), SPEED);
+    return () => clearTimeout(id);
+  }, [typed]);
 
   return (
-    <Container>
-      <FloatingShapes>
-        {shapes.map(shape => (
-          <Shape
-            key={shape.id}
-            style={{
-              width: `${shape.size}px`,
-              height: `${shape.size}px`,
-              left: `${shape.left}%`,
-              top: `${shape.top}%`,
-            }}
-            circle={shape.circle}
-            duration={shape.duration}
-            delay={shape.delay}
-            blur={shape.blur}
-          />
-        ))}
-      </FloatingShapes>
+    <Page>
+      <Noise />
 
-      <HeroSection>
-        <Heading>
-          Master Your Typing with <Highlight>TypeFlare</Highlight>
-        </Heading>
-        <Subtext>
-          Join thousands of developers, writers, and professionals who use our immersive typing platform to improve their speed, accuracy, and productivity.
-        </Subtext>
-        <Button to="/test">Start Free Typing Test</Button>
-      </HeroSection>
+      <Hero>
+        <EyebrowTag>typing speed test</EyebrowTag>
 
-      <FeaturesSection>
-        <SectionTitle>Why Choose TypeFlare</SectionTitle>
-        <Features>
-          <FeatureCard delay="0.4s">
-            <FeatureIcon delay="0.2s">⚡</FeatureIcon>
-            <FeatureTitle>Real-time Analytics</FeatureTitle>
-            <FeatureDesc>
-              Get instant feedback on your typing performance with detailed metrics including WPM, accuracy, and error rate as you type.
-            </FeatureDesc>
-          </FeatureCard>
-          <FeatureCard delay="0.6s">
-            <FeatureIcon delay="0.4s">📈</FeatureIcon>
-            <FeatureTitle>Progress Tracking</FeatureTitle>
-            <FeatureDesc>
-              Visualize your improvement over time with beautiful charts and historical data to keep you motivated.
-            </FeatureDesc>
-          </FeatureCard>
-          <FeatureCard delay="0.8s">
-            <FeatureIcon delay="0.6s">🌐</FeatureIcon>
-            <FeatureTitle>Diverse Content</FeatureTitle>
-            <FeatureDesc>
-              Practice with programming code, literature excerpts, or random words - we've got content for every need.
-            </FeatureDesc>
-          </FeatureCard>
-        </Features>
-      </FeaturesSection>
+        <Title>
+          How fast do
+          <br />
+          you <Accent>actually</Accent> type?
+        </Title>
 
-      <Testimonials>
-        <TestimonialText>
-          TypeFlare helped me increase my typing speed by 40% in just two weeks. The clean interface and detailed feedback made practice sessions enjoyable and effective.
-        </TestimonialText>
-        <TestimonialAuthor>- Sarah K., Frontend Developer</TestimonialAuthor>
-      </Testimonials>
-    </Container>
+        <Sub>
+          Real-time WPM, accuracy tracking, multiple modes.
+          No accounts. No fluff. Just type.
+        </Sub>
+
+        <Terminal>
+          <TitleBar>
+            <Dot color="#ff5f56" />
+            <Dot color="#ffbd2e" />
+            <Dot color="#27c93f" />
+          </TitleBar>
+          <TerminalText>
+            <span className="purple">~ typeflare</span>
+            <br />
+            <span className="dim">start typing to begin your test</span>
+            <br />
+            <br />
+            <span className="typed">{DEMO.slice(0, typed)}</span>
+            <span className="dim">{DEMO.slice(typed)}</span>
+            <Cursor />
+          </TerminalText>
+        </Terminal>
+
+        <CTARow>
+          <PrimaryBtn to="/test">Start Test</PrimaryBtn>
+          <SecondaryBtn to="/results">View History</SecondaryBtn>
+        </CTARow>
+      </Hero>
+
+      <StatsStrip>
+        <StatItem>
+          <StatNum>4</StatNum>
+          <StatLabel>test modes</StatLabel>
+        </StatItem>
+        <Divider />
+        <StatItem>
+          <StatNum>60s</StatNum>
+          <StatLabel>default time</StatLabel>
+        </StatItem>
+        <Divider />
+        <StatItem>
+          <StatNum>live</StatNum>
+          <StatLabel>wpm tracking</StatLabel>
+        </StatItem>
+        <Divider />
+        <StatItem>
+          <StatNum>∞</StatNum>
+          <StatLabel>history saved</StatLabel>
+        </StatItem>
+      </StatsStrip>
+    </Page>
   );
 }
 
